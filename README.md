@@ -1,10 +1,15 @@
-从 QQ(非NT版本)或 TIM 中导出的 mht 消息记录文件中提取 html 及图像的工具。
+`qqmht2html.js`: 从 QQ for Windows(非NT版本)或 TIM 中导出的 mht 消息记录文件中提取 html 及图像的工具。
+`qqtxtsplit.js`: 对 QQ for Windows(非NT版本)或 TIM 中导出的 txt 消息记录文件按聊天对象进行分割的工具。
 
 ## 用法
 [安装 Node.js](https://nodejs.org/en/download) 后使用
 
 ```bash
 node qqmht2html.js -i mhtfile [-hnops]
+```
+分割 txt 使用
+```bash
+node qqtxtsplit.js txtfile
 ```
 
 使用内置库，无需安装依赖。
