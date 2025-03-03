@@ -1,5 +1,6 @@
 const fs = require('fs');
 const readline = require('readline');
+const path = require('path');
 
 const fileStream = fs.createReadStream(process.argv[2]);
 
@@ -22,7 +23,7 @@ rl.on('line', (line) => {
 		{
 			case 2:
 			{
-				fs.mkdir(currentListName, { recursive: true }, (err) => {
+				fs.mkdir(path.join(path.dirname(fileStream.path), currentListName), { recursive: true }, (err) => {
 					if (err)
 					{
 						console.error('创建目录时出错:', err);
@@ -30,7 +31,7 @@ rl.on('line', (line) => {
 					}
 				});
 				read_status = 3;
-				newFileStream = fs.createWriteStream(`./${currentListName}/${currentTargetName.replace(/[\\/:*?"<>|]/g, '_')}.txt`);
+				newFileStream = fs.createWriteStream(path.join(path.dirname(fileStream.path), currentListName, currentTargetName.replace(/[\\/:*?"<>|]/g, '_') + '.txt'));
 				newFileStream.write(currentHeadInfo);
 				currentHeadInfo = '';
 				break;

@@ -1,6 +1,7 @@
 "use strict";
 const fs = require('fs');
 const readline = require('readline');
+const path = require('path');
 
 var fileStream;
 var outputFileName;
@@ -50,8 +51,8 @@ if(options.h || options.help)
 	console.log("用法:\tnode qqmht2html.js -i mhtfile [-hnops]\n");
 	console.log("\t-h 显示此帮助");
 	console.log("\t-i InputFileName\t输入 mht 文件。（必需）");
-	console.log("\t-o Directory\t\t输出文件的目录，不指定则默认为当前目录。");
-	console.log("\t-p ImageDirectoryName\t输出图像的目录名(该目录将位于 -o 指定的输出目录中)，不指定则默认为 img。");
+	console.log("\t-o Directory\t\t输出文件的目录，不指定则默认为输入 mht 文件所在目录。");
+	console.log("\t-p ImageDirectoryName\t输出图像的目录名(注意不是完整路径而是目录名。该目录将位于 -o 指定的输出目录中)，不指定则默认为 img。");
 	console.log("\t-n Number\t\t限制单个文件的最大消息数量。");
 	console.log("\t-s --split\t\t按聊天对象对输出的 html 进行分割。此时 -n 依然有效。");
 	console.log("例如:\tnode qqmht2html.js -i chat.mht -o output -p img -n 2000 -s");
@@ -67,17 +68,12 @@ else
 totalSize = fs.statSync(options.i).size;
 curSize = 0;
 
-if(!options.o) options['o'] = '';
-else if(!options.o.endsWith("/") && !options.o.endsWith("\\")) options.o += '/';
-outputFileName = options.o + options.i.replace(/\..+$/, '') + ".html";
-outputFileName = outputFileName.replace(/[\\/:*?"<>|]/g, '_');
+if(!options.o) options['o'] = path.dirname(options.i);
+outputFileName = path.basename(options.i).replace(/[\\/:*?"<>|]/g, '_') + ".html";
+outputFileName = path.join(options.o, outputFileName);
 
-if(options.p)
-{
-	if(!options.p.endsWith("/") && !options.p.endsWith("\\")) options.p += '/';
-}
-else options['p'] = 'img/';
-outputImageFolder = options.o + options.p;
+if(!options.p) options['p'] = 'img';
+outputImageFolder = path.join(options.o, options.p.replace(/[\\/:*?"<>|]/g, '_'));
 
 if(options.n) lineLimitValue = options.n;
 
@@ -129,7 +125,7 @@ rl.on('line', (line) => {
 			case 4:
 			{
 				if(newFileStream) newFileStream.end();
-				newFileStream = fs.createWriteStream(outputImageFolder + "/" + currentImageName);
+				newFileStream = fs.createWriteStream(path.join(outputImageFolder, currentImageName));
 				newFileStream.write(Buffer.from(bufferImage, 'base64'));
 				newFileStream.end();
 				bufferImage = '';
@@ -198,7 +194,8 @@ rl.on('line', (line) => {
 					}
 					html_line_count = 0;
 					html_page_count = 0;
-					outputFileName = options.o + decodeHtmlEntities(currentListName[1] + '_' + currentTargetName[1] + '.html').replace(/[\\/:*?"<>|]/g, '_');
+					outputFileName = decodeHtmlEntities(currentListName[1] + '_' + currentTargetName[1] + '.html').replace(/[\\/:*?"<>|]/g, '_');
+					outputFileName = path.join(options.o, outputFileName);
 					newFileStream = fs.createWriteStream(outputFileName);
 					newFileStream.write(htmlHead + '\n');
 					
@@ -206,7 +203,7 @@ rl.on('line', (line) => {
 				}
 			}
 
-			const newLine = line.replace(/(<IMG src=")(.*?)(">)/g, "$1" + options.p + "$2$3");
+			const newLine = line.replace(/(<IMG src=")(.*?)(">)/g, "$1" + path.posix.join(options.p, "$2") + "$3");
 			newFileStream.write(newLine + '\n');
 			html_line_count += 1;
 
